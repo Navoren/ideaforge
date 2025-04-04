@@ -1,73 +1,102 @@
-# Welcome to your Lovable project
+# 💡 IdeaForge
 
-## Project info
+**Find Partners, Share Ideas, and Get Research Insights**
 
-**URL**: https://lovable.dev/projects/6616373d-370c-45c0-8be1-e28184b0889a
+---
 
-## How can I edit this code?
+## 🚀 Overview
 
-There are several ways of editing your application.
+In a world full of innovators, finding the right collaborators and accessing relevant academic content remains a major challenge. **IdeaForge** is here to bridge that gap — a platform for students, researchers, and professionals to:
 
-**Use Lovable**
+- 🧠 Share project ideas  
+- 🤝 Connect with like-minded collaborators  
+- 📄 Get AI-powered research paper recommendations  
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/6616373d-370c-45c0-8be1-e28184b0889a) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🎯 Key Features
 
-**Use your preferred IDE**
+- ✅ User registration and authentication
+- ✅ Project posting, browsing, and searching
+- ✅ Skill-based collaborator matching
+- ✅ AI-powered research paper recommendations
+- ✅ Seamless and responsive front-end interface
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🛠️ Tech Stack
 
-Follow these steps:
+### Frontend:
+- React.js (Completed ✅)
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Backend: *(Planned)*
+- FastAPI / Flask  
+- PostgreSQL  
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### AI / ML (for Recommendations):
+- NLP techniques: TF-IDF, Word2Vec, FastText, BERT, Sentence-BERT
+- Cosine & Jaccard similarity algorithms  
 
-# Step 3: Install the necessary dependencies.
-npm i
+### Deployment:
+- AWS / Firebase (Planned)
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+---
 
-**Edit a file directly in GitHub**
+## 🔍 System Architecture
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+1. Users sign up and log in  
+2. Submit project ideas with descriptions and required skills  
+3. AI analyzes inputs and suggests relevant papers  
+4. Users explore projects and request to collaborate  
+5. Collaborators accept/reject and work together  
 
-**Use GitHub Codespaces**
+---
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🧠 Recommendation System Approach
 
-## What technologies are used for this project?
+- Preprocess metadata from research papers
+- Vectorize abstracts and titles
+- Calculate similarity using various models
+- Recommend top matches based on user inputs
 
-This project is built with:
+---
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 🧪 Current Status
 
-## How can I deploy this project?
+- ✅ Frontend completed (React.js)
+- 🔄 Backend and AI system under development
 
-Simply open [Lovable](https://lovable.dev/projects/6616373d-370c-45c0-8be1-e28184b0889a) and click on Share -> Publish.
+---
 
-## Can I connect a custom domain to my Lovable project?
+## 📌 Future Enhancements
 
-Yes it is!
+- 💬 Real-time messaging between collaborators  
+- 📁 Categorized project repository with GitHub links  
+- 🔍 Intelligent collaborator suggestions  
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+---
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## ⚠️ Challenges Ahead
+
+- Ensuring accurate recommendations  
+- Managing scalability as users grow  
+- Boosting platform engagement  
+- Ensuring privacy and security
+
+---
+
+## 📚 Authors
+
+- Tarun Asati – 221030290W  
+- Parth Agarwal – 221030304W  
+- Prakhar Verma – 221030313W  
+
+---
+
+## 📌 License
+
+This project is for educational purposes under the B.Tech curriculum at **Jaypee Institute of Information Technology**.
+
+---
+
+> ⚡ _“Collaborate. Innovate. Discover with IdeaForge.”_
