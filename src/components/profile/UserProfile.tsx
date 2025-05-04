@@ -1,274 +1,297 @@
-
-import { Link } from 'react-router-dom';
-import { User, Briefcase, MapPin, Mail, Link as LinkIcon, Edit, Bookmark, Users, GitBranch, Plus } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { api, UpdateUserRequest } from '@/services/api';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import ProjectCard from '../dashboard/ProjectCard';
+import { User, Settings, Loader, CheckCircle } from 'lucide-react';
+import Navbar from '@/components/layout/Navbar';
 
 const UserProfile = () => {
-  // Sample user data
-  const user = {
-    name: 'Prakhar ',
-    title: 'AI Researcher(to-be) | Data Scientist(may-be)',
-    location: 'India, Chandani Chawk',
-    email: 'Prakhar@example.com',
-    website: 'Prakhar.dev',
-    bio: 'Passionate AI researcher focused on developing machine learning solutions for environmental and agricultural challenges. Looking to collaborate on projects that have a positive impact on sustainability and food security.',
-    skills: ['Machine Learning', 'Python', 'Data Analysis', 'TensorFlow', 'PyTorch', 'Computer Vision', 'NLP', 'Agriculture Tech'],
-    interests: ['Sustainable Agriculture', 'Environmental Conservation', 'Ethical AI', 'Open Source'],
+  const { user, isLoading: authLoading } = useAuth();
+  
+  // Form state
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [bio, setBio] = useState('');
+  const [profileImageUrl, setProfileImageUrl] = useState('');
+  
+  // UI state
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  
+  // Initialize form with user data when it's available
+  useEffect(() => {
+    if (user) {
+      setFullName(user.full_name || '');
+      setEmail(user.email || '');
+      setBio(user.bio || '');
+      setProfileImageUrl(user.profile_image_url || '');
+    }
+  }, [user]);
+  
+  // Function to get user initials for avatar fallback
+  const getUserInitials = () => {
+    if (!user) return 'U';
+    
+    const name = user.full_name || user.username;
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
   };
-
-  // Sample projects data
-  const projects = [
-    {
-      id: '1',
-      title: 'AI-Powered Crop Optimization System',
-      description: 'Developing a machine learning system that analyzes soil conditions, weather patterns, and crop data to optimize farming yields in challenging environments.',
-      category: 'Agriculture Tech',
-      collaborators: 4,
-      lastUpdated: '2 days ago',
-      progress: 65,
-      tags: ['machine-learning', 'agriculture', 'sustainability'],
-    },
-    {
-      id: '2',
-      title: 'Decentralized Education Platform',
-      description: 'Creating a blockchain-based platform for educational credential verification and skill certification that works across borders.',
-      category: 'EdTech',
-      collaborators: 5,
-      lastUpdated: '5 days ago',
-      progress: 40,
-      tags: ['blockchain', 'education', 'verification'],
-    },
-  ];
-
-  // Sample papers data
-  const papers = [
-    {
-      id: '1',
-      title: 'Machine Learning Applications in Agricultural Yield Prediction: A Systematic Review',
-      authors: 'Johnson, A., Rivera, A., et al.',
-      journal: 'Journal of Agricultural Informatics',
-      year: '2024',
-      link: '#',
-    },
-    {
-      id: '2',
-      title: 'Neural Networks for Crop Disease Detection from Multispectral Imagery',
-      authors: 'Rivera, A., Smith, J., et al.',
-      journal: 'IEEE Transactions on Agricultural Engineering',
-      year: '2023',
-      link: '#',
-    },
-    {
-      id: '3',
-      title: 'Ethical Considerations in AI-Driven Agricultural Systems',
-      authors: 'Rivera, A., Chen, L., et al.',
-      journal: 'AI Ethics Journal',
-      year: '2023',
-      link: '#',
-    },
-  ];
-
+  
+  // Handle saving profile changes
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    
+    setIsSubmitting(true);
+    setError(null);
+    setSuccessMessage(null);
+    
+    try {
+      const updateData: UpdateUserRequest = {
+        full_name: fullName,
+        bio,
+        profile_image_url: profileImageUrl,
+      };
+      
+      // Only include email if it's changed
+      if (email !== user.email) {
+        updateData.email = email;
+      }
+      
+      // Update the user profile
+      await api.updateUser(updateData);
+      
+      // Show success message
+      setSuccessMessage('Profile updated successfully!');
+      setIsEditing(false);
+      
+      // Message disappears after 3 seconds
+      setTimeout(() => {
+        setSuccessMessage(null);
+      }, 3000);
+    } catch (err: any) {
+      console.error('Error updating profile:', err);
+      setError(err.response?.data?.detail || 'Failed to update profile. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  // Cancel editing and reset form
+  const handleCancel = () => {
+    // Reset to original values
+    setFullName(user?.full_name || '');
+    setEmail(user?.email || '');
+    setBio(user?.bio || '');
+    setProfileImageUrl(user?.profile_image_url || '');
+    setIsEditing(false);
+    setError(null);
+  };
+  
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center">
+          <Loader className="h-8 w-8 animate-spin text-primary-blue" />
+          <span className="ml-2 text-gray-600">Loading profile...</span>
+        </div>
+      </div>
+    );
+  }
+  
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Profile Header */}
-        <div className="bg-white shadow rounded-lg overflow-hidden mb-8">
-          <div className="bg-gradient-to-r from-primary-blue to-accent-green h-40" />
-          <div className="relative px-6 py-6 sm:px-8 sm:py-8">
-            <div className="absolute -top-16 left-6 sm:left-8">
-              <div className="rounded-full bg-white p-1 shadow-lg">
-                <div className="h-28 w-28 rounded-full bg-gray-200 border-4 border-white flex items-center justify-center">
-                  <User className="h-14 w-14 text-gray-500" />
-                </div>
-              </div>
-            </div>
-            <div className="pt-16 sm:flex sm:items-center sm:justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">{user.name}</h1>
-                <p className="text-gray-600">{user.title}</p>
-                <div className="mt-2 flex flex-wrap items-center text-gray-500 text-sm gap-y-1">
-                  {user.location && (
-                    <div className="flex items-center mr-4">
-                      <MapPin className="h-4 w-4 mr-1" />
-                      <span>{user.location}</span>
-                    </div>
-                  )}
-                  {user.email && (
-                    <div className="flex items-center mr-4">
-                      <Mail className="h-4 w-4 mr-1" />
-                      <a href={`mailto:${user.email}`} className="hover:text-primary-blue">
-                        {user.email}
-                      </a>
-                    </div>
-                  )}
-                  {user.website && (
-                    <div className="flex items-center">
-                      <LinkIcon className="h-4 w-4 mr-1" />
-                      <a href={`https://${user.website}`} target="_blank" rel="noopener noreferrer" className="hover:text-primary-blue">
-                        {user.website}
-                      </a>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="mt-4 sm:mt-0 flex space-x-3">
-                <Button variant="outline" className="flex items-center">
-                  <Users className="h-4 w-4 mr-2" />
-                  Connect
-                </Button>
-                <Button className="bg-primary-blue flex items-center">
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Profile
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Profile Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Sidebar Info */}
-          <div className="lg:col-span-1 space-y-8">
-            {/* About */}
-            <div className="bg-white shadow rounded-lg p-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">About</h2>
-              <p className="text-gray-600">{user.bio}</p>
-            </div>
-
-            {/* Skills */}
-            <div className="bg-white shadow rounded-lg p-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Skills</h2>
-              <div className="flex flex-wrap gap-2">
-                {user.skills.map((skill) => (
-                  <Badge key={skill} variant="outline" className="bg-blue-50 text-primary-blue border-primary-blue/30">
-                    {skill}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-
-            {/* Interests */}
-            <div className="bg-white shadow rounded-lg p-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Research Interests</h2>
-              <div className="flex flex-wrap gap-2">
-                {user.interests.map((interest) => (
-                  <Badge key={interest} variant="outline" className="bg-green-50 text-accent-green border-accent-green/30">
-                    {interest}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Main Content */}
-          <div className="lg:col-span-2">
-            <Tabs defaultValue="projects" className="bg-white shadow rounded-lg overflow-hidden">
-              <TabsList className="w-full border-b border-gray-200 p-0 h-auto">
-                <TabsTrigger 
-                  value="projects" 
-                  className="flex-1 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary-blue data-[state=active]:shadow-none rounded-none"
-                >
-                  <GitBranch className="h-4 w-4 mr-2" />
-                  Projects
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="papers" 
-                  className="flex-1 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary-blue data-[state=active]:shadow-none rounded-none"
-                >
-                  <Bookmark className="h-4 w-4 mr-2" />
-                  Research Papers
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="experience" 
-                  className="flex-1 py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary-blue data-[state=active]:shadow-none rounded-none"
-                >
-                  <Briefcase className="h-4 w-4 mr-2" />
-                  Experience
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="projects" className="p-6 space-y-6">
-                {projects.map((project) => (
-                  <ProjectCard key={project.id} {...project} />
-                ))}
-                <div className="text-center">
-                  <Link to="/projects/new">
-                    <Button variant="outline" className="mt-4">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create New Project
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <Navbar />
+      <div className="flex-grow container mx-auto max-w-4xl px-4 py-8">
+        <Tabs defaultValue="profile" className="w-full">
+          <TabsList className="mb-6">
+            <TabsTrigger value="profile" className="flex items-center">
+              <User className="h-4 w-4 mr-2" />
+              Profile
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center">
+              <Settings className="h-4 w-4 mr-2" />
+              Settings
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="profile">
+            <Card>
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <CardTitle>Profile Information</CardTitle>
+                    <CardDescription>
+                      View and update your personal details
+                    </CardDescription>
+                  </div>
+                  
+                  {!isEditing && (
+                    <Button 
+                      onClick={() => setIsEditing(true)}
+                      variant="outline"
+                    >
+                      Edit Profile
                     </Button>
-                  </Link>
+                  )}
                 </div>
-              </TabsContent>
-              <TabsContent value="papers" className="p-6">
-                <div className="space-y-4">
-                  {papers.map((paper) => (
-                    <div key={paper.id} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                      <h3 className="text-lg font-medium text-gray-900">
-                        <a href={paper.link} className="hover:text-primary-blue">
-                          {paper.title}
-                        </a>
-                      </h3>
-                      <p className="text-gray-600 mt-1">{paper.authors}</p>
-                      <div className="mt-2 flex justify-between items-center">
-                        <div className="text-sm text-gray-500">
-                          {paper.journal} ({paper.year})
-                        </div>
-                        <Badge variant="outline" className="bg-accent-green/10 text-accent-green border-accent-green/30">
-                          Published
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </TabsContent>
-              <TabsContent value="experience" className="p-6">
+              </CardHeader>
+              
+              <CardContent>
+                {/* Success message */}
+                {successMessage && (
+                  <Alert className="mb-6 bg-green-50 border-green-200">
+                    <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
+                    <AlertDescription className="text-green-800">
+                      {successMessage}
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
+                {/* Error message */}
+                {error && (
+                  <Alert variant="destructive" className="mb-6">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+                
                 <div className="space-y-6">
-                  <div className="relative pl-8 pb-6 border-l-2 border-gray-200">
-                    <div className="absolute w-4 h-4 bg-primary-blue rounded-full -left-[9px] top-0" />
-                    <div className="mb-1">
-                      <div className="text-lg font-medium text-gray-900">Senior AI Researcher</div>
-                      <div className="text-primary-blue font-medium">GreenTech AI Labs</div>
+                  {/* Avatar section */}
+                  <div className="flex items-center space-x-4">
+                    <Avatar className="h-20 w-20">
+                      <AvatarImage src={profileImageUrl} alt={user?.username} />
+                      <AvatarFallback className="text-xl">{getUserInitials()}</AvatarFallback>
+                    </Avatar>
+                    
+                    <div>
+                      <h3 className="text-xl font-semibold">{user?.full_name || user?.username}</h3>
+                      <p className="text-sm text-gray-500">@{user?.username}</p>
                     </div>
-                    <div className="text-sm text-gray-500 mb-2">Jan 2022 - Present • San Francisco</div>
-                    <p className="text-gray-600">
-                      Leading research on machine learning applications for sustainable agriculture.
-                      Developing models for crop yield prediction and resource optimization.
-                    </p>
                   </div>
                   
-                  <div className="relative pl-8 pb-6 border-l-2 border-gray-200">
-                    <div className="absolute w-4 h-4 bg-gray-400 rounded-full -left-[9px] top-0" />
-                    <div className="mb-1">
-                      <div className="text-lg font-medium text-gray-900">Data Scientist</div>
-                      <div className="text-gray-700 font-medium">AgriTech Solutions</div>
+                  {/* Profile form */}
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="fullName" className="text-right">
+                        Full Name
+                      </Label>
+                      <Input
+                        id="fullName"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        className="col-span-3"
+                        disabled={!isEditing}
+                        placeholder="Your full name"
+                      />
                     </div>
-                    <div className="text-sm text-gray-500 mb-2">Mar 2019 - Dec 2021 • Boston</div>
-                    <p className="text-gray-600">
-                      Developed predictive models for crop disease detection using computer vision.
-                      Built data pipelines for agricultural sensor networks.
-                    </p>
-                  </div>
-                  
-                  <div className="relative pl-8 pb-6">
-                    <div className="absolute w-4 h-4 bg-gray-400 rounded-full -left-[9px] top-0" />
-                    <div className="mb-1">
-                      <div className="text-lg font-medium text-gray-900">Research Assistant</div>
-                      <div className="text-gray-700 font-medium">University of California, Berkeley</div>
+                    
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="email" className="text-right">
+                        Email
+                      </Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="col-span-3"
+                        disabled={!isEditing}
+                        placeholder="your.email@example.com"
+                      />
                     </div>
-                    <div className="text-sm text-gray-500 mb-2">Sep 2017 - Feb 2019 • Berkeley</div>
-                    <p className="text-gray-600">
-                      Assisted in research on machine learning applications for environmental monitoring.
-                      Co-authored 3 papers on AI in agricultural systems.
-                    </p>
+                    
+                    <div className="grid grid-cols-4 items-start gap-4">
+                      <Label htmlFor="bio" className="text-right pt-2">
+                        Bio
+                      </Label>
+                      <Textarea
+                        id="bio"
+                        value={bio}
+                        onChange={(e) => setBio(e.target.value)}
+                        className="col-span-3"
+                        disabled={!isEditing}
+                        placeholder="Tell us about yourself"
+                        rows={4}
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="profileImageUrl" className="text-right">
+                        Profile Image URL
+                      </Label>
+                      <Input
+                        id="profileImageUrl"
+                        value={profileImageUrl}
+                        onChange={(e) => setProfileImageUrl(e.target.value)}
+                        className="col-span-3"
+                        disabled={!isEditing}
+                        placeholder="https://example.com/your-image.jpg"
+                      />
+                    </div>
                   </div>
                 </div>
-              </TabsContent>
-            </Tabs>
-          </div>
-        </div>
+              </CardContent>
+              
+              {isEditing && (
+                <CardFooter className="flex justify-end space-x-2">
+                  <Button
+                    variant="outline"
+                    onClick={handleCancel}
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleSaveProfile}
+                    disabled={isSubmitting}
+                    className="bg-primary-blue"
+                  >
+                    {isSubmitting ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </CardFooter>
+              )}
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="settings">
+            <Card>
+              <CardHeader>
+                <CardTitle>Account Settings</CardTitle>
+                <CardDescription>
+                  Manage your account preferences and settings
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <h3 className="text-lg font-medium">Email Notifications</h3>
+                  <p className="text-sm text-gray-500">
+                    This feature will be available soon. Stay tuned!
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="text-lg font-medium">Account Security</h3>
+                  <p className="text-sm text-gray-500">
+                    Password change and two-factor authentication options will be added in an upcoming update.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
